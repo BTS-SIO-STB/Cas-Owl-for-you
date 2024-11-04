@@ -85,7 +85,7 @@ BEGIN
 
     -- Loop through each inserted row until no more rows are available
     --WHILE @@FETCH_STATUS = 0
-    BEGIN
+    --BEGIN
         -- Retrieve the price of the item being added to the order line
         SELECT @itemPrice = Price FROM Item WHERE Id = @itemId;
 
@@ -115,7 +115,7 @@ BEGIN
 
         -- Fetch the next row from the cursor
         --FETCH NEXT FROM cur INTO @itemId, @quantity, @orderId;
-    END
+    --END
 
     -- Close and deallocate the cursor once done
     --CLOSE cur;
