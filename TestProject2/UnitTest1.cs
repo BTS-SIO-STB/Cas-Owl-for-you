@@ -5,7 +5,7 @@ namespace TestProject2
 {
     public class IntegrationTests
     {
-        private const string ConnectionString = "Server=localhost,9595;Database=owl;User Id=SA;Password=Password123456789;TrustServerCertificate=True;";
+        private const string ConnectionString = "***************************************************************************";
 
         [Fact]
         public void TestInsertOrderLine_TriggerUpdatesTotalAmount()
