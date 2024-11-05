@@ -6,7 +6,7 @@ This project demonstrates how to use a SQL Server instance (MSSQL) running in Do
 ## Prerequisites
 
 - **GitHub Codespaces** for development.
-- **Docker** (ms-azuretools.vscode-docker).
+- **Docker** (ms-azuretools.vscode-docker extension vs).
 - **.NET SDK** (pre-installed in Codespaces).
 - **SQL Server (MS SQL) extension** for Visual Studio Code.
 
