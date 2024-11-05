@@ -10,6 +10,3 @@ services:
       ACCEPT_EULA: Y
     ports:
       - 9595:1433
-    volumes:
-      - "./rdmbs/mssql/data:/var/opt/mssql/data"
-      - "./rdmbs/mssql/backup:/var/opt/mssql/backup"
