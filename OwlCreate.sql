@@ -1,6 +1,12 @@
-CREATE DATABASE owl;
+-- Ensure the database exists before switching to it
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'owl')
+BEGIN
+    CREATE DATABASE owl;
+END
+GO
 
 USE owl;
+GO
 
 -- Create the TYPE table
 CREATE TABLE Type (
@@ -58,71 +64,62 @@ CREATE TABLE OrderLine (
     Quantity INT NOT NULL
 );
 
+-- Separate CREATE TRIGGER into its own batch
+GO
+
+-- Create the trigger (it must be the first statement in this batch)
 CREATE TRIGGER BeforeInsertOrderLine
 ON OrderLine
 INSTEAD OF INSERT
 AS
 BEGIN
-    -- Declare variables to hold item price, discount rate, total amount, and discount existence flag
     DECLARE @itemPrice DECIMAL(10, 2);
     DECLARE @discountRate DECIMAL(5, 4);
     DECLARE @totalAmount DECIMAL(10, 2);
     DECLARE @discountExists INT;
 
-    -- Declare variables to hold values for each inserted row
     DECLARE @itemId INT;
     DECLARE @quantity INT;
     DECLARE @orderId INT;
 
-    -- Declare a cursor to loop through each row in the inserted table
-    -- A cursor allows for row-by-row processing of a result set, enabling individual row manipulation
-    --DECLARE cur CURSOR FOR
+    DECLARE cur CURSOR FOR
     SELECT ItemId, Quantity, OrderId FROM inserted;
 
-    -- Open the cursor and fetch the first row
-    --OPEN cur;
-    --FETCH NEXT FROM cur INTO @itemId, @quantity, @orderId;
+    OPEN cur;
+    FETCH NEXT FROM cur INTO @itemId, @quantity, @orderId;
 
-    -- Loop through each inserted row until no more rows are available
-    --WHILE @@FETCH_STATUS = 0
-    --BEGIN
-        -- Retrieve the price of the item being added to the order line
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
         SELECT @itemPrice = Price FROM Item WHERE Id = @itemId;
 
-        -- Check if a discount exists for the item in the current period
         SELECT @discountExists = COUNT(*), @discountRate = MAX(d.Discount)
         FROM Discount d
         JOIN Period p ON d.PeriodId = p.Id
         WHERE d.ItemId = @itemId
         AND GETDATE() BETWEEN p.Date AND DATEADD(DAY, 1, p.Date);
 
-        -- Calculate the total amount based on the quantity and whether a discount applies
         IF @discountExists > 0
         BEGIN
-            -- Apply the discount if it exists
             SET @totalAmount = @quantity * @itemPrice * (1 - @discountRate);
         END
         ELSE
         BEGIN
-            -- No discount exists, use the full price
             SET @totalAmount = @quantity * @itemPrice;
         END
 
-        -- Update the total amount for the associated order in the Order1 table
         UPDATE Order1
         SET TotalAmount = ISNULL(TotalAmount, 0) + @totalAmount
         WHERE Id = @orderId;
 
-        -- Fetch the next row from the cursor
-        --FETCH NEXT FROM cur INTO @itemId, @quantity, @orderId;
-    --END
+        FETCH NEXT FROM cur INTO @itemId, @quantity, @orderId;
+    END
 
-    -- Close and deallocate the cursor once done
-    --CLOSE cur;
-    --DEALLOCATE cur;
+    CLOSE cur;
+    DEALLOCATE cur;
 END
+GO
 
-
+-- Insert data into tables
 INSERT INTO Size (SizeName, Description) VALUES
     ('L', 'Large size'),
     ('S', 'Small size'),
@@ -134,7 +131,6 @@ INSERT INTO Type (TypeName, Description) VALUES
     ('Sweatshirt', 'A warm sweatshirt for colder weather'),
     ('Tee Shirt', 'A standard T-shirt');
 
--- Insert into Color table
 INSERT INTO Color (ColorName, Description) VALUES
     ('Black', 'Black color'),
     ('Blue', 'Blue color'),
@@ -149,12 +145,12 @@ INSERT INTO Item (Id, TypeName, SizeName, ColorName, Price) VALUES
     (4, 'Sweatshirt', 'L', 'Red', 30.60),
     (5, 'Sweatshirt', 'XXL', 'Red', 21.00);
 
--- Insert into Period table
+-- Insert data into Period table
 INSERT INTO Period (Id, Description, Date) VALUES
     (1, 'BackToSchool', '2024-09-01'),
     (2, 'Day After Back To School', '2024-09-02');
 
--- Insert into Discount table
+-- Insert data into Discount table
 INSERT INTO Discount (ItemId, PeriodId, Discount) VALUES
     (1, 1, 0.80),
     (3, 2, 0.50);
@@ -164,6 +160,7 @@ INSERT INTO Order1 (Id, Date) VALUES
     (1, '2024-09-01'),
     (2, '2024-10-01');
 
+-- Start a transaction to insert into OrderLine table
 BEGIN TRANSACTION;
 
 INSERT INTO OrderLine (Id, OrderId, ItemId, Quantity) VALUES
@@ -171,3 +168,4 @@ INSERT INTO OrderLine (Id, OrderId, ItemId, Quantity) VALUES
     (2, 1, 3, 1);
 
 COMMIT;
+GO
