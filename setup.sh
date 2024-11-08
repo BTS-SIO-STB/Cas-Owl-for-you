@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Start the Docker container in detached mode
-echo "Starting the Docker container..."
+echo "Starting the Docker container (15 sec delay to intialise docker)..."
+sleep 15 
 docker-compose up -d
 
 # Confirm the container is running
@@ -9,7 +10,7 @@ echo "Checking container status..."
 docker-compose ps
 
 # Wait for the SQL Server to fully start
-echo "Waiting for the SQL Server to initialize..."
+echo "Waiting for the SQL Server to initialize (200 sec)..."
 sleep 200  # Adjust this delay if SQL Server takes longer to start up
 
 # Copy the setup script into the container
