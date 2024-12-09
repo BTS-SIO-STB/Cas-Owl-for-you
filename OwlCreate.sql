@@ -82,13 +82,8 @@ BEGIN
     DECLARE @quantity INT;
     DECLARE @orderId INT;
 
-    DECLARE cur CURSOR FOR
     SELECT ItemId, Quantity, OrderId FROM inserted;
 
-    OPEN cur;
-    FETCH NEXT FROM cur INTO @itemId, @quantity, @orderId;
-
-    WHILE @@FETCH_STATUS = 0
     BEGIN
         SELECT @itemPrice = Price FROM Item WHERE Id = @itemId;
 
@@ -110,12 +105,7 @@ BEGIN
         UPDATE Order1
         SET TotalAmount = ISNULL(TotalAmount, 0) + @totalAmount
         WHERE Id = @orderId;
-
-        FETCH NEXT FROM cur INTO @itemId, @quantity, @orderId;
     END
-
-    CLOSE cur;
-    DEALLOCATE cur;
 END
 GO
 
